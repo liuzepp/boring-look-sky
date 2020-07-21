@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block head %}
+    <script type="text/javascript">
+        function total() {
+            let total_all = 0, total_checked = 0, total_count = 0;
+
+            $('.cart_list_td').each(function () {
+                let price = parseFloat($(this).children('.col05').children('em').html());
+                let count = parseInt($(this).find('.num_show').val());
+                let total_small = price * count;
+                $(this).children('.col07').html(total_small.toFixed(2) + '元');
+
+                //如果选中状态
+                if ($(this).children('.col01').children('input').prop('checked')) {
+                    total_all += total_small;
+                    total_checked += count;
+                }
+                total_count += count;
+            });
+            $('.settlements .col03 em').html(total_all.toFixed(2) + '元');
+            $('.settlements .col03 b').html(total_checked);
+            $('.total_count em').html(total_count);
+        }
+
+
+        $(function () {
+            total();
+
+            //全选或全部取消
+            $('#check_all').click(function () {
+                let checked = $(this).prop('checked');//当前选中状态
+                $(':checkbox:not(#check_all)').prop('checked', checked);
+                total();
+            });
+            //部分选中或取消
+            $(':checkbox:not(#check_all)').click(function () {
+                let len1 = $(':checkbox:not(#check_all)').length;
+                let len2 = $(':checked:not(#check_all)').length;
+                $('#check_all').prop('checked', len1 == len2);
+                total();
+            });
+
+            //数量控制
+            //加
+            $('.add').click(function () {
+                let num = parseInt($(this).next().val());
+                num++;
+                $(this).next().val(num).blur();
+            });
+            //减
+            $('.minus').click(function () {
+                let num = parseInt($(this).prev().val());
+                num--;
+                $(this).prev().val(num).blur();
+            });
+
+            //编辑购物车
+            $('.num_show').blur(function () {
+                let num = parseInt($(this).val());
+                if (isNaN(num) || num <= 1) {
+                    num = 1
+                }
+                if (num >= 100) {
+                    num = 100
+                }
+                $(this).val(num);
+
+                let cid = $(this).parent().parent().prevAll().find('input').val();
+                $.get('/edit/', {'cid': cid, 'count': num});
+                total()
+            });
+            //删除
+            $('.remove').click(function () {
+                       let cid = $(this).parent().children('.col01 ').children('input').val();
+                $.get('/removechar/', {'cid': cid,}, function () {
+                    location.reload();
+                });
+            })
+
+        })
+
+
+    </script>
+{% endblock %}
+ {% block tbody %}
+
+
+
+<form action="{% url 'order' %}" method="get">
+	<div class="total_count">全部商品<em>{{ c }}</em>件</div>
+	<ul class="cart_list_th clearfix">
+		<li class="col01">商品名称</li>
+		<li class="col02">商品单位</li>
+		<li class="col03">商品价格</li>
+		<li class="col04">数量</li>
+		<li class="col05">小计</li>
+		<li class="col06">操作</li>
+	</ul>
+
+
+
+     {% for i in list1 %}
+        <ul class="cart_list_td clearfix">
+		<li class="col01"><input type="checkbox" name="cid" checked="checked" value="{{ i.good.id }}"></li>
+		<li class="col02"><img src="/static/images/{{ i.buy.gpic }}"></li>
+		<li class="col03">{{ i.buy.gtitle }}<br><em>{{ i.buy.gprice }}元/{{ i.buy.gunit }}</em></li>
+		<li class="col04">{{ i.buy.gunit }}</li>
+		<li class="col05"><em>{{ i.buy.gprice }}</em> 元</li>
+		<li class="col06">
+
+			<div class="num_add">
+				<a href="javascript:;" class="add fl">+</a>
+				<input type="text" class="num_show fl" value="{{ i.count }}">
+				<a href="javascript:;" class="minus fl">-</a>
+			</div>
+		</li>
+		<li class="col07" >{{ i.buy.gprice }}元</li>
+		<li class="col08 remove"><a href="javascript:;" >删除</a></li>
+	</ul>
+{% endfor %}
+
+	<ul class="settlements">
+		<li class="col01"><input type="checkbox" name=""  checked="checked" id="check_all"></li>
+		<li class="col02">全选</li>
+		<li class="col03">合计(不含运费)：<span>¥</span><em>42.60</em><br>共计<b>2</b>件商品</li>
+		<li class="col04"><input type="submit"  value="去结算"></li>
+	</ul>
+
+</form>
+{% endblock %}

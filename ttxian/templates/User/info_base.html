@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block head %}
+    <script type="text/javascript">
+        $(function () {
+            $a = $('.left_menu_con ul li a');
+            $a.each(function (index, val) {
+                if ($(this).html() == '{{ title }}') {
+                    $(this).addClass('active').siblings().removeClass('active');
+                }
+            })
+        })
+    </script>
+{% endblock %}
+{% block tbody %}
+
+
+
+    <div class="main_con clearfix">
+        <div class="left_menu_con clearfix">
+            <h3>用户中心</h3>
+            <ul>
+                <li><a href="{% url 'info' %}">个人信息</a></li>
+                <li><a href="{% url 'uorder' %}">全部订单</a></li>
+                <li><a href="{% url 'site' %}">收货地址</a></li>
+            </ul>
+        </div>
+        {% block info %}
+
+
+        {% endblock info %}
+    </div>
+{% endblock %}

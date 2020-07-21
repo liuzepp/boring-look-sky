@@ -1,0 +1,97 @@
+{% extends 'Goodshow/gbase.html' %}
+{% load staticfiles %}
+{% block nav %}
+    <div class="breadcrumb">
+        <a href="#">全部分类</a>
+        <span>></span>
+        <a href="#">{{ type.ttitle }}</a>
+    </div>
+ <script type="text/javascript">
+  function add_ok(count,gid) {
+
+            var $add_x = $("."+gid).offset().top;
+            var $add_y = $("."+gid).offset().left;
+
+            var $to_x = $('#show_count').offset().top;
+            var $to_y = $('#show_count').offset().left;
+
+            $('.add_jump').css({left: $add_y , top: $add_x, display: 'block'})
+                .stop()
+                .animate({left: $to_y + 7, top: $to_x + 7}, 'fast', function () {
+                    $('.add_jump').fadeOut('fast', function () {
+                        $('#show_count').html(count)
+                    })
+                })
+        }
+
+        $(function () {
+
+
+
+
+            $('.add_goods').click(function () {
+                let gid=$(this).prop('name')
+                $.get('/addchar/', {'gid': gid, 'count': 1}, function (data) {
+                    if (data.isNotLogin == 1) {
+                        location.href = '{% url "login" %}'
+                    }
+                    console.log(data);
+                    add_ok(data.count,gid);
+                })
+            })
+
+        })
+    </script>
+{% endblock %}
+{% block right %}
+
+    <div class="sort_bar">
+        <a href="/list{{ tid }}_{{ page.number }}_0/" {% if ord_str == '0' %} class="active"{% endif %}>默认</a>
+        <a href="/list{{ tid }}_{{ page.number }}_1/" {% if ord_str == '1' %} class="active"{% endif %}>价格</a>
+        <a href="/list{{ tid }}_{{ page.number }}_2/" {% if ord_str == '2' %} class="active"{% endif %}>人气</a>
+    </div>
+
+    <ul class="goods_type_list clearfix">
+
+        {% for g in page.object_list %}
+
+            <li>
+                <a href="/{{ g.id }}/"><img src="/static/images/{{ g.gpic }}"></a>
+
+                <h4><a href="/{{ g.id }}/">{{ g.gtitle }}</a></h4>
+                <div class="operate">
+                    <span class="prize">￥{{ g.gprice }}</span>
+                    <span class="unit">{{ g.gprice }}/{{ g.gunit }}</span>
+                    <a href="javascript:;" name="{{ g.id }}" class="add_goods {{ g.id }}" title="加入购物车"></a>
+                </div>
+            </li>
+
+        {% endfor %}
+
+
+    </ul>
+
+    <div class="pagenation">
+        {% if page.has_previous %}
+
+            <a href="/list{{ tid }}_{{ page.previous_page_number }}_{{ ord_str }}">上一页</a>
+
+        {% endif %}
+        {% for i in page.paginator.page_range %}
+            {% if i == page.number %}
+                <a href="#" class="active">{{ i }}</a>
+            {% else %}
+                <a href="/list{{ tid }}_{{ i }}_{{ ord_str }}">{{ i }}</a>
+            {% endif %}
+
+        {% endfor %}
+
+        {% if page.has_next %}        <a href="/list{{ tid }}_{{ page.next_page_number }}_{{ ord_str }}">下一页</a>
+        {% endif %}
+
+
+    </div>
+<div class="add_jump"></div>
+{% endblock %}
+
+

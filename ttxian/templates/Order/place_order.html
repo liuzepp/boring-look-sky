@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block head %}
+    <script type="text/javascript">
+
+    </script>
+
+
+{% endblock %}
+{% block tbody %}
+
+
+    <h3 class="common_title">确认收货地址</h3>
+
+    <div class="common_list_con clearfix">
+        <dl>
+            <dt>寄送到：</dt>
+            <dd><input type="radio" name="" checked="">{{ info }}</dd>
+        </dl>
+        <a href="{% url 'site' %}" class="edit_site">编辑收货地址</a>
+
+    </div>
+
+    <h3 class="common_title">支付方式</h3>
+    <div class="common_list_con clearfix">
+        <div class="pay_style_con clearfix">
+            <input type="radio" name="pay_style" value="cash">
+            <label class="cash">货到付款</label>
+            <input type="radio" name="pay_style">
+            <label class="weixin">微信支付</label>
+            <input type="radio" name="pay_style" value="zfb" checked>
+            <label class="zhifubao"></label>
+            <input type="radio" name="pay_style">
+            <label class="bank">银行卡支付</label>
+        </div>
+    </div>
+
+    <h3 class="common_title">商品列表</h3>
+
+    <div class="common_list_con clearfix">
+
+
+        <ul class="goods_list_th clearfix">
+            <li class="col01">商品名称</li>
+            <li class="col02">商品单位</li>
+            <li class="col03">商品价格</li>
+            <li class="col04">数量</li>
+            <li class="col05">小计</li>
+        </ul>
+        {% for cart in clist %}
+
+
+
+            <ul class="goods_list_td clearfix">
+                <input type="hidden" name="cid" value="{{ cart.id }}">
+                <li class="col01">{{ forloop.counter }}</li>
+                <li class="col02"><img src="/static/images/{{ cart.goods.gpic }}"></li>
+                <li class="col03">{{ cart.goods.gtitle|truncatechars:'10' }}</li>
+                <li class="col04">{{ cart.goods.gunit }}</li>
+                <li class="col05">{{ cart.goods.gprice }}元</li>
+                <li class="col06">{{ cart.count }}</li>
+                <li class="col07">{{ cart.goods.gprice }}</li>
+            </ul>
+        {% endfor %}
+
+
+    </div>
+
+    <h3 class="common_title">总金额结算</h3>
+
+    <div class="common_list_con clearfix">
+        <div class="settle_con">
+            <div class="total_goods_count">共<em>2</em>件商品，总金额<b>42.60元</b></div>
+            <div class="transit">运费：<b>10元</b></div>
+            <div class="total_pay">实付款：<b>52.60元</b>元</div>
+        </div>
+    </div>
+
+    <div class="order_submit clearfix">
+        <a href="javascript:;" id="order_btn">提交订单</a>
+    </div>
+
+    <div class="popup_con">
+        <div class="popup">
+            <p>订单提交成功！</p>
+        </div>
+
+        <div class="mask"></div>
+    </div>
+
+    <script type="text/javascript">
+
+        function total() {
+            let total_all = 0, total_checked = 0, total_count = 0;
+
+            $('.goods_list_td').each(function () {
+                let price = parseFloat($(this).children('.col05').html());
+                let count = parseInt($(this).children('.col06').html());
+                let total_small = price * count;
+                $(this).children('.col07').html(total_small.toFixed(2) + '元');
+
+                //如果选中状态
+
+                total_all += total_small;
+                total_checked += count;
+
+                total_count += count;
+            });
+            $('.total_goods_count b').html(total_all.toFixed(2) + '元');
+            $('.transit  b').html('0元');
+            $('.total_goods_count em').html(total_count);
+            $('.total_pay b').html(total_all.toFixed(2));
+        }
+        $(function () {
+                total();
+
+            })
+
+
+        $('#order_btn').click(function () {
+           let pay_style=$('.pay_style_con :checked').val();
+            let cids=[];
+            $('.goods_list_td input').each(function () {
+                cids.push($(this).val())
+            })
+            $('.popup_con').fadeIn('fast', function () {
+
+                setTimeout(function () {
+                    $('.popup_con').fadeOut('fast', function () {
+                            $.ajax({
+                            url: '/do_order/',
+                            traditional: true,
+                            type: 'get',
+                            dataType: 'json',
+                            data: {'cid': cids, 'pay_style': pay_style,}
+                        }).done(function (data) {
+
+                            if (data.res == 0) {
+                                window.location.reload()
+                            }
+                            else if (data.res == 1) {
+                                location.href = '{% url 'info' %}'
+                            }
+                            else {
+                                window.open(data.pay_url)
+                            }
+                        });
+                    });
+                }, 3000)
+
+            });
+        });
+    </script>
+
+{% endblock %}
